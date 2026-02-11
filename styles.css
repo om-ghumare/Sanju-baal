@@ -11,6 +11,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.6s ease;
 }
 
 .container {
@@ -24,6 +25,7 @@ body {
   padding: 28px 22px 22px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  transition: all 0.4s ease;
 }
 
 .title {
@@ -65,30 +67,12 @@ body {
   margin-top: 10px;
 }
 
-.dots {
-  margin-top: 10px;
-}
-
-.dot {
-  height: 6px;
-  width: 6px;
-  background: #ddd;
-  border-radius: 50%;
-  display: inline-block;
-  margin: 0 4px;
-}
-
-.dot.active {
-  background: #ff4f8b;
-}
-
 .footer {
   margin-top: 18px;
   font-size: 11px;
   color: #999;
 }
 
-/* floating hearts */
 .heart {
   position: absolute;
   bottom: 20px;
