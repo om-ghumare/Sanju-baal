@@ -91,9 +91,6 @@ body {
   animation: floatUp 1.2s ease-out forwards;
   pointer-events: none;
 }
-.slide {
-  transition: opacity 0.25s ease;
-}
 
 @keyframes floatUp {
   from {
