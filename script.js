@@ -1,5 +1,15 @@
 const contentArea = document.getElementById("contentArea");
 
+// Preload images immediately
+function preloadAssets() {
+  const images = ["us.jpeg", "cute.jpeg"];
+  images.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+}
+preloadAssets();
+
 let step = 0;
 
 let holdTriggered = false;
