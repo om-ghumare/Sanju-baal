@@ -1,12 +1,11 @@
 const contentArea = document.getElementById("contentArea");
-const dots = document.querySelectorAll(".dot");
 
 let step = 0;
 let holdTimer = null;
 let holdTriggered = false;
-let clickCount = 0;   // 👈 backup trigger counter
+let clickCount = 0;
 
-const SECRET_CLICK_THRESHOLD = 23;  // 👈 change if you want 13 instead
+const SECRET_CLICK_THRESHOLD = 12;
 
 const steps = [
   {
@@ -52,9 +51,8 @@ const steps = [
 
 contentArea.addEventListener("click", () => {
   popHeart();
-  clickCount++;   // 👈 track taps
+  clickCount++;
 
-  // Backup unlock after many clicks
   if (!holdTriggered && clickCount >= SECRET_CLICK_THRESHOLD) {
     triggerSecret();
     holdTriggered = true;
@@ -63,43 +61,46 @@ contentArea.addEventListener("click", () => {
 
   if (step >= steps.length) return;
 
-  dots[step]?.classList.remove("active");
+  const current = steps[step];
   step++;
-  dots[step]?.classList.add("active");
-
-  const current = steps[step - 1];
   render(current);
 });
 
 function render(item) {
-  contentArea.innerHTML = "";
+  contentArea.style.opacity = 0;
 
-  if (item.type === "text") {
-    contentArea.innerHTML = `<p class="message">${item.text}</p>`;
-  }
+  setTimeout(() => {
+    contentArea.innerHTML = "";
 
-  if (item.type === "teddy") {
-    contentArea.innerHTML = `
-      <div class="emoji">🧸</div>
-      <p class="message">${item.text}</p>
-    `;
-  }
+    if (item.type === "text") {
+      contentArea.innerHTML = `<p class="message">${item.text}</p>`;
+    }
 
-  if (item.type === "photo") {
-    contentArea.innerHTML = `
-      <p class="message">${item.text}</p>
-      <img src="${item.src}" class="photo" />
-    `;
-  }
+    if (item.type === "teddy") {
+      contentArea.innerHTML = `
+        <div class="emoji">🧸</div>
+        <p class="message">${item.text}</p>
+      `;
+    }
 
-  if (item.type === "video") {
-    contentArea.innerHTML = `
-      <p class="message">${item.text}</p>
-      <video class="photo" autoplay muted loop playsinline>
-        <source src="${item.src}" type="video/mp4">
-      </video>
-    `;
-  }
+    if (item.type === "photo") {
+      contentArea.innerHTML = `
+        <p class="message">${item.text}</p>
+        <img src="${item.src}" class="photo" />
+      `;
+    }
+
+    if (item.type === "video") {
+      contentArea.innerHTML = `
+        <p class="message">${item.text}</p>
+        <video class="photo" autoplay muted loop playsinline>
+          <source src="${item.src}" type="video/mp4">
+        </video>
+      `;
+    }
+
+    contentArea.style.opacity = 1;
+  }, 150);
 }
 
 function popHeart() {
@@ -109,10 +110,17 @@ function popHeart() {
   heart.style.left = Math.random() * 80 + "%";
   contentArea.appendChild(heart);
 
+  // Visual pulse (instead of unreliable vibration)
+  const card = document.querySelector(".card");
+  card.style.transform = "scale(0.98)";
+  setTimeout(() => {
+    card.style.transform = "scale(1)";
+  }, 100);
+
   setTimeout(() => heart.remove(), 1200);
 }
 
-/* 💗 HOLD FOR 3 SECONDS SECRET */
+/* Hold for 3 seconds secret */
 
 contentArea.addEventListener("touchstart", startHold);
 contentArea.addEventListener("mousedown", startHold);
@@ -135,10 +143,6 @@ function cancelHold() {
 }
 
 function triggerSecret() {
-  if (navigator.vibrate) {
-    navigator.vibrate(200);
-  }
-
   document.body.style.background =
     "linear-gradient(135deg, #ff8ecf, #ffc1e3)";
 
