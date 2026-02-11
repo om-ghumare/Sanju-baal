@@ -1,40 +1,77 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const loveButton = document.getElementById('loveButton');
-    const loveMessage = document.getElementById('loveMessage');
+const contentArea = document.getElementById("contentArea");
+const dots = document.querySelectorAll(".dot");
 
-    const messages = [
-        "You make my heart skip a beat! 💓",
-        "I'm so lucky to have you in my life! 🌹",
-        "Every moment with you is magical! ✨",
-        "You are my everything! 💕",
-        "Happy Valentine's Day, my love! 💖",
-        "You light up my world! 🌟",
-        "Forever and always yours! 💑",
-        "You are the best thing that ever happened to me! 🎉"
-    ];
+let step = 0;
 
-    loveButton.addEventListener('click', function() {
-        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-        loveMessage.textContent = randomMessage;
-        loveMessage.classList.remove('hidden');
+const steps = [
+  {
+    type: "text",
+    text: "Okay but why did you tap so confidently? 😏"
+  },
+  {
+    type: "text",
+    text: "I hope you’re smiling right now… because I am."
+  },
+  {
+    type: "teddy",
+    text: "So you don’t ever feel alone."
+  },
+  {
+    type: "photo",
+    text: "One of my favourite ‘us’ moments 🤍",
+    src: "photo1.jpg" // replace with your photo
+  },
+  {
+    type: "text",
+    text: "Loving you feels easy. Annoying you is just a bonus."
+  },
+  {
+    type: "text",
+    text: "Happy Valentine’s Day, Sanju 🤍"
+  }
+];
 
-        // Create floating hearts
-        for (let i = 0; i < 5; i++) {
-            createFloatingHeart();
-        }
-    });
+contentArea.addEventListener("click", () => {
+  popHeart();
 
-    function createFloatingHeart() {
-        const heart = document.createElement('div');
-        heart.className = 'floating-heart';
-        heart.textContent = '💖';
-        heart.style.left = Math.random() * 100 + 'vw';
-        heart.style.animationDelay = Math.random() * 2 + 's';
-        document.body.appendChild(heart);
+  if (step >= steps.length) return;
 
-        // Remove the heart after animation
-        setTimeout(() => {
-            document.body.removeChild(heart);
-        }, 3000);
-    }
+  dots[step]?.classList.remove("active");
+  step++;
+  dots[step]?.classList.add("active");
+
+  const current = steps[step - 1];
+  render(current);
 });
+
+function render(item) {
+  contentArea.innerHTML = "";
+
+  if (item.type === "text") {
+    contentArea.innerHTML = `<p class="message">${item.text}</p>`;
+  }
+
+  if (item.type === "teddy") {
+    contentArea.innerHTML = `
+      <div class="emoji">🧸</div>
+      <p class="message">${item.text}</p>
+    `;
+  }
+
+  if (item.type === "photo") {
+    contentArea.innerHTML = `
+      <p class="message">${item.text}</p>
+      <img src="${item.src}" class="photo" />
+    `;
+  }
+}
+
+function popHeart() {
+  const heart = document.createElement("div");
+  heart.className = "heart";
+  heart.innerText = "💗";
+  heart.style.left = Math.random() * 80 + "%";
+  contentArea.appendChild(heart);
+
+  setTimeout(() => heart.remove(), 1200);
+}
