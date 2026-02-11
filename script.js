@@ -45,40 +45,44 @@ contentArea.addEventListener("click", () => {
 });
 
 function render(item) {
-  contentArea.style.opacity = 0;
 
-  setTimeout(() => {
-    contentArea.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "slide";
+  wrapper.style.opacity = 0;
 
-    if (item.type === "text") {
-      contentArea.innerHTML = `<p class="message">${item.text}</p>`;
-    }
+  if (item.type === "text") {
+    wrapper.innerHTML = `<p class="message">${item.text}</p>`;
+  }
 
-    if (item.type === "teddy") {
-      contentArea.innerHTML = `
-        <div class="emoji">🧸</div>
-        <p class="message">${item.text}</p>
-      `;
-    }
+  if (item.type === "teddy") {
+    wrapper.innerHTML = `
+      <div class="emoji">🧸</div>
+      <p class="message">${item.text}</p>
+    `;
+  }
 
-    if (item.type === "photo") {
-      contentArea.innerHTML = `
-        <p class="message">${item.text}</p>
-        <img src="${item.src}" class="photo" />
-      `;
-    }
+  if (item.type === "photo") {
+    wrapper.innerHTML = `
+      <p class="message">${item.text}</p>
+      <img src="${item.src}" class="photo" />
+    `;
+  }
 
-    if (item.type === "video") {
-      contentArea.innerHTML = `
-        <p class="message">${item.text}</p>
-        <video class="photo" autoplay muted loop playsinline>
-          <source src="${item.src}" type="video/mp4">
-        </video>
-      `;
-    }
+  if (item.type === "video") {
+    wrapper.innerHTML = `
+      <p class="message">${item.text}</p>
+      <video class="photo" autoplay muted loop playsinline>
+        <source src="${item.src}" type="video/mp4">
+      </video>
+    `;
+  }
 
-    contentArea.style.opacity = 1;
-  }, 120);
+  contentArea.innerHTML = "";
+  contentArea.appendChild(wrapper);
+
+  requestAnimationFrame(() => {
+    wrapper.style.opacity = 1;
+  });
 }
 
 /* =======================
@@ -89,11 +93,27 @@ function createHeart() {
   const heart = document.createElement("div");
   heart.className = "heart";
   heart.innerText = "💗";
-  heart.style.left = Math.random() * 90 + "%";
-  heart.style.fontSize = (Math.random() * 10 + 18) + "px";
-  contentArea.appendChild(heart);
+  heart.style.position = "fixed";
+  heart.style.left = Math.random() * 100 + "vw";
+  heart.style.bottom = "-20px";
+  heart.style.fontSize = (Math.random() * 14 + 18) + "px";
+  heart.style.pointerEvents = "none";
+  heart.style.zIndex = 9999;
 
-  setTimeout(() => heart.remove(), 1200);
+  document.body.appendChild(heart);
+
+  heart.animate(
+    [
+      { transform: "translateY(0)", opacity: 1 },
+      { transform: "translateY(-110vh)", opacity: 0 }
+    ],
+    {
+      duration: 1600,
+      easing: "ease-out"
+    }
+  );
+
+  setTimeout(() => heart.remove(), 1600);
 }
 
 function popMultipleHearts() {
