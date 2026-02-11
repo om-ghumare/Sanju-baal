@@ -8,62 +8,40 @@ let clickCount = 0;
 const SECRET_CLICK_THRESHOLD = 12;
 
 const steps = [
-  {
-    type: "text",
-    text: "Why did you tap so confidently? 😏 I respect that."
-  },
-  {
-    type: "text",
-    text: "If you're smiling right now, good. That was kind of the plan."
-  },
-  {
-    type: "video",
-    text: "This smile right here? Yeah. This one.",
-    src: "happy.mp4"
-  },
-  {
-    type: "teddy",
-    text: "You don't need big gestures to know you're important."
-  },
-  {
-    type: "photo",
-    text: "This version of us? I like this one.",
-    src: "us.jpg"
-  },
-  {
-    type: "text",
-    text: "You're kind of unfairly cute sometimes."
-  },
-  {
-    type: "photo",
-    text: "Okay but this one? Don’t get mad 😌",
-    src: "cute.jpg"
-  },
-  {
-    type: "text",
-    text: "Being with you feels natural. Teasing you just makes it better 😏"
-  },
-  {
-    type: "text",
-    text: "Happy Valentine’s Day, Sanju 🤍"
-  }
+  { type: "text", text: "Why did you tap so confidently? 😏 I respect that." },
+  { type: "text", text: "If you're smiling right now, good. That was kind of the plan." },
+  { type: "video", text: "This smile right here? Yeah. This one.", src: "happy.mp4" },
+  { type: "teddy", text: "You don't need big gestures to know you're important." },
+  { type: "photo", text: "This version of us? I like this one.", src: "us.jpg" },
+  { type: "text", text: "You're kind of unfairly cute sometimes." },
+  { type: "photo", text: "Okay but this one? Don’t get mad 😌", src: "cute.jpg" },
+  { type: "text", text: "Being with you feels natural. Teasing you just makes it better 😏" },
+  { type: "text", text: "Happy Valentine’s Day, Sanju 🤍" }
 ];
 
 contentArea.addEventListener("click", () => {
-  popHeart();
-  clickCount++;
 
-  if (!holdTriggered && clickCount >= SECRET_CLICK_THRESHOLD) {
-    triggerSecret();
-    holdTriggered = true;
+  const onLastSlide = step >= steps.length;
+
+  // 🔒 Secret logic ONLY after last slide
+  if (onLastSlide && !holdTriggered) {
+    clickCount++;
+
+    popSingleHeart(); // one heart on last slide
+
+    if (clickCount >= SECRET_CLICK_THRESHOLD) {
+      triggerSecret();
+      holdTriggered = true;
+    }
     return;
   }
 
-  if (step >= steps.length) return;
-
-  const current = steps[step];
-  step++;
-  render(current);
+  // Normal slide progression
+  if (step < steps.length) {
+    popMultipleHearts(); // many hearts on normal slides
+    render(steps[step]);
+    step++;
+  }
 });
 
 function render(item) {
@@ -100,37 +78,59 @@ function render(item) {
     }
 
     contentArea.style.opacity = 1;
-  }, 150);
+  }, 120);
 }
 
-function popHeart() {
+/* =======================
+   HEART SYSTEM
+======================= */
+
+function createHeart() {
   const heart = document.createElement("div");
   heart.className = "heart";
   heart.innerText = "💗";
-  heart.style.left = Math.random() * 80 + "%";
+  heart.style.left = Math.random() * 90 + "%";
+  heart.style.fontSize = (Math.random() * 10 + 18) + "px";
   contentArea.appendChild(heart);
 
-  // Visual pulse (instead of unreliable vibration)
+  setTimeout(() => heart.remove(), 1200);
+}
+
+function popMultipleHearts() {
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => createHeart(), i * 80);
+  }
+
+  subtlePulse();
+}
+
+function popSingleHeart() {
+  createHeart();
+  subtlePulse();
+}
+
+function subtlePulse() {
   const card = document.querySelector(".card");
   card.style.transform = "scale(0.98)";
   setTimeout(() => {
     card.style.transform = "scale(1)";
   }, 100);
-
-  setTimeout(() => heart.remove(), 1200);
 }
 
-/* Hold for 3 seconds secret */
+/* =======================
+   HOLD FOR 3 SECONDS
+   Only on last slide
+======================= */
 
 contentArea.addEventListener("touchstart", startHold);
 contentArea.addEventListener("mousedown", startHold);
-
 contentArea.addEventListener("touchend", cancelHold);
 contentArea.addEventListener("mouseup", cancelHold);
 contentArea.addEventListener("mouseleave", cancelHold);
 
 function startHold() {
-  if (holdTriggered) return;
+  const onLastSlide = step >= steps.length;
+  if (!onLastSlide || holdTriggered) return;
 
   holdTimer = setTimeout(() => {
     triggerSecret();
@@ -142,9 +142,19 @@ function cancelHold() {
   clearTimeout(holdTimer);
 }
 
+/* =======================
+   SECRET REVEAL
+======================= */
+
 function triggerSecret() {
+
   document.body.style.background =
     "linear-gradient(135deg, #ff8ecf, #ffc1e3)";
+
+  // MASSIVE heart explosion
+  for (let i = 0; i < 40; i++) {
+    setTimeout(() => createHeart(), i * 40);
+  }
 
   document.querySelector(".card").innerHTML = `
     <h2 style="color:#ff2f7a;">Okay… you found it 🤍</h2>
