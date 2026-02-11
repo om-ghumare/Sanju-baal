@@ -1,11 +1,11 @@
 const contentArea = document.getElementById("contentArea");
 
 let step = 0;
-let holdTimer = null;
+
 let holdTriggered = false;
 let clickCount = 0;
 
-const SECRET_CLICK_THRESHOLD = 15;
+
 
 const steps = [
   { type: "text", text: "Why did you tap so confidently? 😏 I respect that." },
@@ -16,7 +16,7 @@ const steps = [
   { type: "text", text: "You're kind of unfairly cute sometimes." },
   { type: "photo", text: "Okay but this one? Don’t get mad 😌", src: "cute.jpeg" },
   { type: "text", text: "Being with you feels natural. Teasing you just makes it better 😏" },
-  { type: "text", text: "Happy Valentine’s Day, My Sunshine 🤍" }
+  { type: "final_heart", text: "Happy Valentine’s Day, My Sunshine 🤍" }
 ];
 
 
@@ -27,14 +27,7 @@ contentArea.addEventListener("click", () => {
 
   // 🔒 Secret logic ONLY after last slide
   if (onLastSlide && !holdTriggered) {
-    clickCount++;
-
-    popSingleHeart(); // one heart on last slide
-
-    if (clickCount >= SECRET_CLICK_THRESHOLD) {
-      triggerSecret();
-      holdTriggered = true;
-    }
+    popSingleHeart(); // Visual feedback (on background)
     return;
   }
 
@@ -97,21 +90,83 @@ function render(item) {
       `;
     }
 
+    if (item.type === "final_heart") {
+      contentArea.innerHTML = `
+        <p class="message">${item.text}</p>
+        <div class="heart-wrapper" id="heartWrap" onclick="fillHeart(event)">
+          <svg class="heart-svg" id="heartSVG" viewBox="0 0 512 512">
+            <defs>
+              <linearGradient id="softGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffb3c1" />
+                <stop offset="50%" stop-color="#e63946" />
+                <stop offset="100%" stop-color="#a4133c" />
+              </linearGradient>
+            </defs>
+            <path class="fill" id="heartFill" fill="url(#softGrad)" style="clip-path: inset(100% 0 0 0 round 30px);" d="M256 464l-16-14C118 336 48 272 48 192 48 128 96 80 160 80c40 0 80 24 96 56 16-32 56-56 96-56 64 0 112 48 112 112 0 80-70 144-192 258l-16 14z" />
+            <path class="outline" d="M256 464l-16-14C118 336 48 272 48 192 48 128 96 80 160 80c40 0 80 24 96 56 16-32 56-56 96-56 64 0 112 48 112 112 0 80-70 144-192 258l-16 14z" />
+          </svg>
+          <div class="counter" id="heartCounter">Tap to fill my heart 🤍</div>
+        </div>
+      `;
+      // Reset click count for this new interaction
+      clickCount = 0;
+    }
+
     contentArea.style.opacity = 1;
   }, 120);
 }
+
+// Global function for the heart interaction
+window.fillHeart = function (event) {
+  event.stopPropagation(); // Prevent card click event
+
+  if (holdTriggered) return;
+
+  clickCount++;
+
+  // Calculate relative position to the CARD
+  const card = document.querySelector(".card");
+  const rect = card.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  // Pop heart at click location
+  createHeart(x, y);
+  subtlePulse();
+
+  const maxTaps = 15;
+  const percent = 100 - (clickCount / maxTaps) * 100;
+
+  const heartFill = document.getElementById("heartFill");
+
+  if (heartFill) {
+    heartFill.style.clipPath = `inset(${percent}% 0 0 0 round 30px)`;
+  }
+
+  if (clickCount >= maxTaps) {
+    triggerSecret();
+    holdTriggered = true;
+  }
+};
 
 /* =======================
    HEART SYSTEM
 ======================= */
 
-function createHeart() {
+function createHeart(x, y) {
   const heart = document.createElement("div");
   heart.className = "heart";
   heart.innerText = "💗";
-  heart.style.left = Math.random() * 90 + "%";
+
+  if (x !== undefined && y !== undefined) {
+    heart.style.left = x + "px";
+    heart.style.top = y + "px";
+    heart.style.bottom = "auto";
+  } else {
+    heart.style.left = Math.random() * 90 + "%";
+  }
+
   heart.style.fontSize = (Math.random() * 10 + 18) + "px";
-  // Append to card so it can overflow out of content area
   document.querySelector(".card").appendChild(heart);
 
   setTimeout(() => heart.remove(), 1200);
@@ -138,30 +193,7 @@ function subtlePulse() {
   }, 100);
 }
 
-/* =======================
-   HOLD FOR 3 SECONDS
-   Only on last slide
-======================= */
 
-contentArea.addEventListener("touchstart", startHold);
-contentArea.addEventListener("mousedown", startHold);
-contentArea.addEventListener("touchend", cancelHold);
-contentArea.addEventListener("mouseup", cancelHold);
-contentArea.addEventListener("mouseleave", cancelHold);
-
-function startHold() {
-  const onLastSlide = step >= steps.length;
-  if (!onLastSlide || holdTriggered) return;
-
-  holdTimer = setTimeout(() => {
-    triggerSecret();
-    holdTriggered = true;
-  }, 3000);
-}
-
-function cancelHold() {
-  clearTimeout(holdTimer);
-}
 
 /* =======================
    SECRET REVEAL
@@ -172,13 +204,7 @@ function triggerSecret() {
   document.body.style.background =
     "linear-gradient(135deg, #ff8ecf, #ffc1e3)";
 
-  // MASSIVE heart explosion
-  // for (let i = 0; i < 100; i++) {
-  //   setTimeout(() => createHeart(), i * 30);
-  // }
-  confettiRain();
-
-
+  explode(); // Canvas explosion
 
   document.querySelector(".card").innerHTML = `
     <h2 style="color:#ff2f7a;">Okay… you found it 🤍</h2>
@@ -194,100 +220,132 @@ function triggerSecret() {
   `;
 }
 
-function confettiRain() {
-  const colors = ["#fff", "#ff8ecf", "#ff2f7a", "#ffc1e3"];
+/* =======================
+   CANVAS EXPLOSION
+======================= */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-  for (let i = 0; i < 250; i++) {
-    const confetti = document.createElement("div");
-    confetti.className = "confetti";
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.onresize = resize;
 
-    // Random: Heart or Square?
-    const isHeart = Math.random() > 0.5;
+// Pre-render emojis for performance
+function createEmojiCanvas(emoji) {
+  const c = document.createElement('canvas');
+  // Size big enough for high-DPI
+  c.width = 64;
+  c.height = 64;
+  const x = c.getContext('2d');
+  x.font = "48px serif";
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  x.fillText(emoji, 32, 36);
+  return c;
+}
 
-    if (isHeart) {
-      confetti.innerText = Math.random() > 0.5 ? "🤍" : "💗";
-      confetti.style.fontSize = (Math.random() * 10 + 10) + "px"; // 10px - 20px
-    } else {
-      // It's a square
-      confetti.style.width = (Math.random() * 6 + 4) + "px"; // 4px - 10px
-      confetti.style.height = confetti.style.width;
-      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+const heartCanvasWhite = createEmojiCanvas("🤍");
+const heartCanvasPink = createEmojiCanvas("💗");
+
+function explode() {
+  const heartWrap = document.getElementById("heartWrap");
+  const heartSVG = document.getElementById("heartSVG");
+
+  // Bloom effect on wrapper
+  if (heartWrap) heartWrap.classList.add("bloom");
+
+  // Hide SVG instantly
+  if (heartSVG) heartSVG.style.opacity = "0";
+
+  // Calculate center. If wrapper is gone (because we replaced .card innerHTML), use center of screen
+  let centerX = window.innerWidth / 2;
+  let centerY = window.innerHeight / 2;
+
+  if (heartWrap) {
+    const rect = heartWrap.getBoundingClientRect();
+    centerX = rect.left + rect.width / 2;
+    centerY = rect.top + rect.height / 2;
+  }
+
+  const colors = ["#ffffff", "#ffe5ec", "#ffb3c1", "#ff8fa3", "#e63946", "#a4133c"];
+
+  // Micro-delay
+  requestAnimationFrame(() => {
+    const particles = [];
+
+    for (let i = 0; i < 1000; i++) {
+      let angle = Math.random() * 2 * Math.PI;
+
+      // 60% "more at the top" logic:
+      // Currently 50% are up (sin < 0) and 50% down (sin > 0).
+      // If we want 60% up, we flip 20% of the downward ones to up.
+      // (50% down * 0.2 = 10% flipped to up. Total up = 50% + 10% = 60%).
+      if (Math.sin(angle) > 0 && Math.random() < 0.2) {
+        angle = -angle;
+      }
+
+      // "Throw them at more distance" -> Increase speed
+      const speed = 4.5 + Math.random() * 14.5; // Minute decrease from 5-20
+
+      particles.push({
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 4 + Math.random() * 6, // Render size
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 220, // Increased slightly from 180
+        maxLife: 220,
+        type: Math.random() > 0.5 ? "heart" : "square",
+        char: Math.random() > 0.5 ? "🤍" : "💗"
+      });
     }
 
-    // Random positioning
-    confetti.style.left = Math.random() * 100 + "vw";
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
 
-    // Random fall speed (faster for burst feel)
-    confetti.style.animationDuration = (Math.random() * 2 + 1.5) + "s";
+      particles.forEach(p => {
+        if (p.life <= 0) return;
+        alive = true;
 
-    // Random delay (short delay for burst)
-    confetti.style.animationDelay = (Math.random() * 1.5) + "s";
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.1; // Gravity
+        p.vx *= 0.99; // Drag
+        p.vy *= 0.99;
+        p.life--;
 
-    document.body.appendChild(confetti);
+        const alpha = p.life / p.maxLife;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
 
-    // Cleanup confetti
-    setTimeout(() => confetti.remove(), 4000); // Shorter cleanup
-  }
+        if (p.type === "square") {
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        } else {
+          // Hearts use pre-rendered canvas (much faster than fillText)
+          const img = p.char === "🤍" ? heartCanvasWhite : heartCanvasPink;
+          // Draw image centered at p.x, p.y
+          // p.size is small (4-10), so we scale the 64x64 image down
+          // Actually let's start with a fixed size for hearts or scale them
+          // Let's use p.size * 3 to make them visible enough compared to squares
+          const s = p.size * 2.5;
+          ctx.drawImage(img, p.x - s / 2, p.y - s / 2, s, s);
+        }
+      });
+
+      ctx.globalAlpha = 1;
+
+      if (alive) {
+        requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+    animate();
+  });
 }
 
-function startHeartStage() {
-  isHeartStage = true;
-  clickCount = 0;
-  contentArea.innerHTML = "";
-
-  // Create SVG Heart
-  // Two paths: one grey (background), one pink (foreground) clipped by a rect
-  contentArea.innerHTML = `
-    <p class="message">Fill my heart 🤍</p>
-    <div class="heart-container" style="margin-top:20px; transform: scale(1.5); transition: transform 0.1s;">
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <!-- Background Heart (Empty/Gray) -->
-        <path d="M50 88.9L48.5 87.5C17.9 59.5 0 42.7 0 23.5C0 9.6 10.9 0 24.5 0C32.2 0 39.6 3.6 44.5 9.3C49.4 3.6 56.8 0 64.5 0C78.1 0 89 9.6 89 23.5C89 42.7 71.1 59.5 40.5 87.5L50 96L59.5 87.5" 
-              fill="#eee" stroke="#ccc" stroke-width="2" transform="translate(5,5) scale(0.9)"/>
-        
-        <!-- Foreground Heart (Pink) -->
-        <g clip-path="url(#heart-clip)">
-           <path d="M50 88.9L48.5 87.5C17.9 59.5 0 42.7 0 23.5C0 9.6 10.9 0 24.5 0C32.2 0 39.6 3.6 44.5 9.3C49.4 3.6 56.8 0 64.5 0C78.1 0 89 9.6 89 23.5C89 42.7 71.1 59.5 40.5 87.5L50 96L59.5 87.5" 
-              fill="#ff2f7a" transform="translate(5,5) scale(0.9)"/>
-        </g>
-        
-        <defs>
-          <clipPath id="heart-clip">
-            <!-- This rect moves UP to reveal the heart -->
-            <!-- Start at y=100 (empty) to y=0 (full) -->
-            <rect id="fill-rect" x="0" y="100" width="100" height="100" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
-  `;
-}
-
-function handleHeartClick() {
-  clickCount++;
-  popSingleHeart();
-
-  const totalClicks = 15;
-  const percentage = Math.min((clickCount / totalClicks) * 100, 100);
-
-  // Calculate y position: 100% -> 0%
-  // At 0 clicks, y=100. At 15 clicks, y=0.
-  const newY = 100 - percentage;
-
-  const fillRect = document.getElementById("fill-rect");
-  if (fillRect) {
-    fillRect.setAttribute("y", newY);
-  }
-
-  // Pulse effect
-  const container = document.querySelector(".heart-container");
-  if (container) {
-    container.style.transform = "scale(1.4)";
-    setTimeout(() => container.style.transform = "scale(1.5)", 100);
-  }
-
-  if (clickCount >= totalClicks) {
-    triggerSecret();
-    holdTriggered = true;
-  }
-}
