@@ -24,8 +24,10 @@ body {
   border-radius: 22px;
   padding: 28px 22px 22px;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   transition: transform 0.1s ease;
+  position: relative;
+  z-index: 20;
 }
 
 .title {
@@ -49,7 +51,8 @@ body {
   position: relative;
   overflow: hidden;
 
-  min-height: 260px;  /* Prevent layout jump */
+  min-height: 480px;
+  /* Prevent layout jump */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -86,10 +89,12 @@ body {
 /* Floating hearts */
 .heart {
   position: absolute;
-  bottom: 20px;
+  bottom: -40px;
   font-size: 18px;
   animation: floatUp 1.2s ease-out forwards;
   pointer-events: none;
+  z-index: 50;
+  /* Top most */
 }
 
 @keyframes floatUp {
@@ -97,8 +102,52 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   to {
     opacity: 0;
-    transform: translateY(-80px) scale(1.6);
+    transform: translateY(-150px) scale(1.6);
+    /* Fly higher */
+  }
+}
+
+
+
+/* Fix layout shift */
+.media-container {
+  width: 100%;
+  height: 380px;
+  /* Fixed height for consistency */
+  background: #fff0f5;
+  border-radius: 14px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Confetti Rain */
+.confetti {
+  position: absolute;
+  top: -60px;
+  /* Start above viewport */
+  z-index: 1000;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  pointer-events: none;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
   }
 }
