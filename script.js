@@ -12,9 +12,9 @@ const steps = [
   { type: "text", text: "If you're smiling right now, good. That was kind of the plan." },
   { type: "video", text: "This smile right here? Yeah. This one.", src: "happy.mp4" },
   { type: "teddy", text: "You don't need big gestures to know you're important." },
-  { type: "photo", text: "This version of us? I like this one.", src: "us.jpg" },
+  { type: "photo", text: "This version of us? I like this one.", src: "us.jpeg" },
   { type: "text", text: "You're kind of unfairly cute sometimes." },
-  { type: "photo", text: "Okay but this one? Don’t get mad 😌", src: "cute.jpg" },
+  { type: "photo", text: "Okay but this one? Don’t get mad 😌", src: "cute.jpeg" },
   { type: "text", text: "Being with you feels natural. Teasing you just makes it better 😏" },
   { type: "text", text: "Happy Valentine’s Day, Sanju 🤍" }
 ];
